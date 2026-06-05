@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeafMind – Smart Plant Care</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green-deep: #1a3a2a;
+  --green-mid: #2d5a3d;
+  --green-bright: #4a9b6f;
+  --green-light: #7ec99a;
+  --green-pale: #d4edda;
+  --cream: #faf7f0;
+  --warm-white: #fff9f0;
+  --amber: #e8a020;
+  --amber-light: #ffd580;
+  --rust: #c0522a;
+  --text-dark: #1a1a12;
+  --text-mid: #4a4a3a;
+  --text-soft: #8a8a7a;
+  --shadow-soft: 0 4px 24px rgba(26,58,42,0.10);
+  --shadow-mid: 0 8px 40px rgba(26,58,42,0.16);
+  --radius: 20px;
+  --radius-sm: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--text-dark);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── TOP NAV ── */
+.top-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(250,247,240,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(74,155,111,0.12);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; height: 64px;
+  box-shadow: 0 2px 16px rgba(26,58,42,0.07);
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; color: var(--green-deep); font-weight: 700;
+}
+.nav-logo span { color: var(--green-bright); }
+.nav-actions { display: flex; align-items: center; gap: 12px; }
+.nav-lang-btn {
+  background: var(--green-pale); color: var(--green-deep);
+  border: none; border-radius: 20px; padding: 6px 14px;
+  font-size: 13px; font-weight: 500; cursor: pointer; transition: all .2s;
+}
+.nav-lang-btn:hover { background: var(--green-light); color: white; }
+.nav-notif-btn {
+  width: 40px; height: 40px; border-radius: 50%; border: none;
+  background: var(--green-pale); color: var(--green-deep);
+  font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  position: relative; transition: all .2s;
+}
+.nav-notif-btn:hover { background: var(--green-bright); color: white; }
+.notif-dot {
+  position: absolute; top: 6px; right: 6px;
+  width: 8px; height: 8px; background: var(--rust); border-radius: 50%;
+  border: 2px solid var(--cream);
+}
+
+/* ── MAIN LAYOUT ── */
+.layout { display: flex; padding-top: 64px; min-height: 100vh; }
+.sidebar {
+  width: 220px; flex-shrink: 0;
+  background: var(--green-deep);
+  position: fixed; top: 64px; left: 0; bottom: 0;
+  padding: 28px 16px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.sidebar-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 16px; border-radius: var(--radius-sm);
+  color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all .2s; border: none; background: none; width: 100%; text-align: left;
+}
+.sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+.sidebar-item.active { background: var(--green-bright); color: white; }
+.sidebar-icon { font-size: 18px; width: 22px; text-align: center; }
+.sidebar-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 10px 0; }
+
+.main-content { margin-left: 220px; flex: 1; padding: 32px 36px; }
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; animation: fadeUp .35s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+
+/* ── PAGE HEADER ── */
+.page-header { margin-bottom: 28px; }
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px; color: var(--green-deep); font-weight: 700;
+}
+.page-subtitle { color: var(--text-soft); font-size: 15px; margin-top: 4px; }
+
+/* ── STAT CARDS ── */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 16px; margin-bottom: 32px; }
+.stat-card {
+  background: white; border-radius: var(--radius); padding: 22px 24px;
+  box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 18px;
+}
+.stat-icon { font-size: 34px; }
+.stat-num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--green-deep); }
+.stat-label { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+
+/* ── CARE TODAY ── */
+.care-today-section { margin-bottom: 32px; }
+.section-title { font-size: 17px; font-weight: 600; color: var(--text-dark); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.badge { background: var(--rust); color: white; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+.care-cards { display: flex; flex-wrap: wrap; gap: 14px; }
+.care-card {
+  background: white; border-radius: var(--radius); padding: 18px 20px;
+  box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 16px;
+  min-width: 240px; flex: 1; max-width: 320px; transition: transform .2s;
+  border-left: 4px solid var(--green-bright);
+}
+.care-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-mid); }
+.care-card.urgent { border-left-color: var(--rust); }
+.care-card.fertilize { border-left-color: var(--amber); }
+.care-plant-img {
+  width: 52px; height: 52px; border-radius: 14px; object-fit: cover;
+  background: var(--green-pale); display: flex; align-items: center; justify-content: center;
+  font-size: 26px; flex-shrink: 0;
+}
+.care-plant-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 14px; }
+.care-info { flex: 1; }
+.care-name { font-weight: 600; font-size: 14px; color: var(--text-dark); }
+.care-task { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+.care-due { font-size: 11px; color: var(--rust); font-weight: 500; margin-top: 4px; }
+.done-btn {
+  background: var(--green-bright); color: white; border: none;
+  border-radius: 10px; padding: 8px 14px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all .2s; flex-shrink: 0;
+}
+.done-btn:hover { background: var(--green-deep); }
+.done-btn.completed { background: var(--green-pale); color: var(--green-bright); cursor: default; }
+
+/* ── MY PLANTS GRID ── */
+.plants-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.search-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: white; border: 1.5px solid rgba(74,155,111,0.2);
+  border-radius: 40px; padding: 8px 18px; width: 260px; box-shadow: var(--shadow-soft);
+}
+.search-bar input { border: none; outline: none; font-size: 14px; font-family: inherit; color: var(--text-dark); background: none; width: 100%; }
+.search-bar input::placeholder { color: var(--text-soft); }
+.add-plant-btn {
+  background: var(--green-deep); color: white; border: none;
+  border-radius: 40px; padding: 10px 22px; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 8px;
+}
+.add-plant-btn:hover { background: var(--green-bright); transform: translateY(-1px); }
+
+.plants-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 20px; }
+.plant-card {
+  background: white; border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow-soft); cursor: pointer; transition: all .25s;
+  position: relative;
+}
+.plant-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-mid); }
+.plant-thumb {
+  width: 100%; height: 140px; background: var(--green-pale);
+  display: flex; align-items: center; justify-content: center; font-size: 54px;
+  position: relative; overflow: hidden;
+}
+.plant-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.plant-health-badge {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
+  border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600;
+}
+.health-good { color: var(--green-bright); }
+.health-warn { color: var(--amber); }
+.health-bad { color: var(--rust); }
+.plant-body { padding: 14px 16px; }
+.plant-name { font-weight: 600; font-size: 15px; color: var(--text-dark); }
+.plant-sci { font-size: 11px; color: var(--text-soft); font-style: italic; margin-top: 2px; }
+.plant-location { font-size: 12px; color: var(--text-soft); margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+.plant-next-care { font-size: 11px; margin-top: 8px; padding: 5px 10px; background: var(--green-pale); border-radius: 8px; color: var(--green-deep); }
+
+/* ── DISEASE AI ── */
+.disease-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.disease-panel { background: white; border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow-soft); }
+.symptom-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+.symptom-chip {
+  padding: 8px 16px; border-radius: 30px; border: 2px solid var(--green-pale);
+  background: var(--green-pale); color: var(--text-dark); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .2s; user-select: none;
+}
+.symptom-chip:hover { border-color: var(--green-bright); }
+.symptom-chip.selected { background: var(--green-bright); color: white; border-color: var(--green-bright); }
+.diagnose-btn {
+  background: linear-gradient(135deg, var(--green-deep), var(--green-bright));
+  color: white; border: none; border-radius: 40px; padding: 13px 30px;
+  font-size: 15px; font-weight: 600; cursor: pointer; transition: all .2s; margin-top: 8px;
+  display: flex; align-items: center; gap: 10px;
+}
+.diagnose-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(74,155,111,0.4); }
+.diagnosis-result { margin-top: 20px; }
+.diagnosis-card { background: var(--cream); border-radius: var(--radius-sm); padding: 20px; margin-top: 12px; border: 1.5px solid var(--green-pale); }
+.diagnosis-disease { font-weight: 700; font-size: 16px; color: var(--green-deep); }
+.diagnosis-prob { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+.diagnosis-desc { font-size: 13px; color: var(--text-mid); margin-top: 10px; line-height: 1.6; }
+.diagnosis-treatment { margin-top: 14px; }
+.treatment-title { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px; }
+.treatment-step { font-size: 13px; color: var(--text-mid); padding: 5px 0; border-bottom: 1px solid var(--green-pale); display: flex; gap: 8px; }
+.treatment-step:last-child { border-bottom: none; }
+.step-num { background: var(--green-bright); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.ai-loading { display: flex; align-items: center; gap: 12px; padding: 20px 0; color: var(--text-soft); }
+.spinner { width: 24px; height: 24px; border: 3px solid var(--green-pale); border-top-color: var(--green-bright); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── HISTORY TIMELINE ── */
+.history-list { display: flex; flex-direction: column; gap: 0; }
+.timeline-item { display: flex; gap: 20px; padding: 16px 0; border-bottom: 1px solid rgba(74,155,111,0.08); }
+.timeline-item:last-child { border-bottom: none; }
+.tl-dot-col { display: flex; flex-direction: column; align-items: center; }
+.tl-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--green-bright); flex-shrink: 0; margin-top: 4px; }
+.tl-dot.fertilize { background: var(--amber); }
+.tl-dot.mist { background: #60b4d8; }
+.tl-line { flex: 1; width: 2px; background: rgba(74,155,111,0.15); margin-top: 4px; }
+.tl-body { flex: 1; }
+.tl-title { font-weight: 600; font-size: 14px; color: var(--text-dark); }
+.tl-plant { font-size: 12px; color: var(--green-bright); margin-top: 1px; }
+.tl-date { font-size: 11px; color: var(--text-soft); margin-top: 4px; }
+.tl-note { font-size: 13px; color: var(--text-mid); margin-top: 6px; padding: 8px 12px; background: var(--cream); border-radius: 8px; }
+
+/* ── CATALOG ── */
+.catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 16px; }
+.catalog-card {
+  background: white; border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow-soft); transition: all .22s;
+}
+.catalog-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-mid); }
+.catalog-thumb {
+  width: 100%; height: 120px; background: var(--green-pale);
+  display: flex; align-items: center; justify-content: center; font-size: 48px;
+}
+.catalog-body { padding: 14px; }
+.catalog-name { font-weight: 600; font-size: 14px; }
+.catalog-sci { font-size: 11px; color: var(--text-soft); font-style: italic; margin-top: 1px; }
+.catalog-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.catalog-tag { font-size: 10px; background: var(--green-pale); color: var(--green-deep); padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+.catalog-water { font-size: 11px; color: var(--text-soft); margin-top: 8px; display: flex; gap: 14px; }
+.add-from-catalog-btn {
+  margin-top: 10px; width: 100%; background: var(--green-pale); color: var(--green-deep);
+  border: none; border-radius: 10px; padding: 7px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all .2s;
+}
+.add-from-catalog-btn:hover { background: var(--green-bright); color: white; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(26,58,42,0.55);
+  backdrop-filter: blur(6px); z-index: 500; display: flex; align-items: center; justify-content: center;
+  padding: 20px; opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: white; border-radius: 28px; padding: 36px; max-width: 540px; width: 100%;
+  box-shadow: 0 30px 80px rgba(26,58,42,0.25); transform: translateY(20px);
+  transition: transform .25s; max-height: 90vh; overflow-y: auto;
+}
+.modal-overlay.open .modal { transform: none; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--green-deep); font-weight: 700; }
+.modal-close { width: 36px; height: 36px; border-radius: 50%; border: none; background: var(--cream); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.form-group { margin-bottom: 18px; }
+.form-label { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px; display: block; }
+.form-input, .form-select {
+  width: 100%; border: 2px solid rgba(74,155,111,0.2);
+  border-radius: var(--radius-sm); padding: 12px 16px; font-size: 14px;
+  font-family: inherit; outline: none; transition: border .2s; color: var(--text-dark); background: white;
+}
+.form-input:focus, .form-select:focus { border-color: var(--green-bright); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-submit {
+  width: 100%; background: linear-gradient(135deg, var(--green-deep), var(--green-bright));
+  color: white; border: none; border-radius: 40px; padding: 15px; font-size: 16px; font-weight: 600;
+  cursor: pointer; transition: all .2s; margin-top: 8px; font-family: inherit;
+}
+.form-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(74,155,111,0.3); }
+.emoji-picker { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.emoji-opt {
+  width: 44px; height: 44px; border-radius: 12px; background: var(--green-pale);
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+  cursor: pointer; border: 2px solid transparent; transition: all .2s;
+}
+.emoji-opt.selected { border-color: var(--green-bright); background: white; }
+.photo-preview-wrap { margin-top: 10px; display: flex; gap: 12px; align-items: center; }
+.photo-preview { width: 80px; height: 80px; border-radius: 14px; object-fit: cover; background: var(--green-pale); display: none; }
+
+/* ── NOTIFICATION TOAST ── */
+.toast-container { position: fixed; top: 80px; right: 24px; z-index: 900; display: flex; flex-direction: column; gap: 10px; }
+.toast {
+  background: var(--green-deep); color: white; padding: 14px 20px; border-radius: 16px;
+  font-size: 14px; box-shadow: var(--shadow-mid); display: flex; align-items: center; gap: 12px;
+  transform: translateX(120%); transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  max-width: 320px;
+}
+.toast.show { transform: none; }
+.toast-icon { font-size: 20px; }
+.toast-close { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; margin-left: auto; font-size: 16px; }
+
+/* ── LANG MODAL ── */
+.lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.lang-opt {
+  padding: 14px 18px; border-radius: 14px; border: 2px solid var(--green-pale);
+  cursor: pointer; transition: all .2s; text-align: center;
+}
+.lang-opt:hover { border-color: var(--green-bright); }
+.lang-opt.active { background: var(--green-bright); border-color: var(--green-bright); color: white; }
+.lang-name { font-weight: 600; font-size: 14px; }
+.lang-native { font-size: 12px; margin-top: 2px; opacity: .75; }
+
+/* ── PLANT DETAIL MODAL ── */
+.plant-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+.care-stat-chip { background: var(--cream); border-radius: 12px; padding: 12px 14px; }
+.care-stat-chip .csc-label { font-size: 11px; color: var(--text-soft); font-weight: 500; }
+.care-stat-chip .csc-val { font-size: 15px; font-weight: 700; color: var(--green-deep); margin-top: 2px; }
+.detail-history { margin-top: 20px; }
+
+/* ── FILTER TABS ── */
+.filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+.filter-tab {
+  padding: 7px 16px; border-radius: 30px; background: var(--green-pale);
+  color: var(--green-deep); font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .2s;
+}
+.filter-tab.active { background: var(--green-deep); color: white; }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-soft); }
+.empty-state .es-icon { font-size: 64px; margin-bottom: 16px; }
+.empty-state .es-title { font-size: 18px; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main-content { margin-left: 0; padding: 24px 16px; }
+  .disease-grid { grid-template-columns: 1fr; }
+  .plant-detail-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .plants-grid { grid-template-columns: 1fr 1fr; }
+  .catalog-grid { grid-template-columns: 1fr 1fr; }
+  .care-cards { flex-direction: column; }
+  .care-card { max-width: 100%; }
+  .form-row { grid-template-columns: 1fr; }
+  .plant-detail-grid { grid-template-columns: 1fr 1fr; }
+  .main-content { padding-bottom: 80px; }
+}
+
+/* ── MOBILE BOTTOM NAV ── */
+.bottom-nav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: white; border-top: 1px solid rgba(74,155,111,0.12);
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 20px rgba(26,58,42,0.07);
+}
+.bottom-nav-inner { display: flex; justify-content: space-around; }
+.bnav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 12px; cursor: pointer; border-radius: 12px; transition: all .2s; border: none; background: none; }
+.bnav-item .bnav-icon { font-size: 22px; }
+.bnav-item .bnav-label { font-size: 10px; color: var(--text-soft); font-weight: 500; }
+.bnav-item.active .bnav-icon { filter: none; }
+.bnav-item.active .bnav-label { color: var(--green-bright); }
+@media (max-width: 900px) { .bottom-nav { display: block; } }
+
+.progress-bar-wrap { width: 100%; height: 6px; background: var(--green-pale); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, var(--green-bright), var(--green-light)); border-radius: 3px; transition: width .5s; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="nav-logo">🌿 <span>Leaf</span>Mind</div>
+  <div class="nav-actions">
+    <button class="nav-lang-btn" onclick="openLangModal()">🌐 EN</button>
+    <button class="nav-notif-btn" onclick="requestNotifPermission()" title="Enable Notifications">
+      🔔<span class="notif-dot" id="notifDot" style="display:none"></span>
+    </button>
+  </div>
+</nav>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <button class="sidebar-item active" data-view="dashboard" onclick="switchView('dashboard',this)">
+    <span class="sidebar-icon">🏡</span> <span data-i18n="nav_dashboard">Dashboard</span>
+  </button>
+  <button class="sidebar-item" data-view="myplants" onclick="switchView('myplants',this)">
+    <span class="sidebar-icon">🌱</span> <span data-i18n="nav_plants">My Plants</span>
+  </button>
+  <button class="sidebar-item" data-view="catalog" onclick="switchView('catalog',this)">
+    <span class="sidebar-icon">📚</span> <span data-i18n="nav_catalog">Catalog</span>
+  </button>
+  <button class="sidebar-item" data-view="disease" onclick="switchView('disease',this)">
+    <span class="sidebar-icon">🔬</span> <span data-i18n="nav_disease">Disease AI</span>
+  </button>
+  <button class="sidebar-item" data-view="history" onclick="switchView('history',this)">
+    <span class="sidebar-icon">📋</span> <span data-i18n="nav_history">Care History</span>
+  </button>
+  <div class="sidebar-divider"></div>
+  <button class="sidebar-item" onclick="openLangModal()">
+    <span class="sidebar-icon">🌐</span> <span data-i18n="nav_language">Language</span>
+  </button>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="layout">
+  <div class="main-content">
+
+    <!-- DASHBOARD VIEW -->
+    <div class="view active" id="view-dashboard">
+      <div class="page-header">
+        <div class="page-title" data-i18n="dash_title">Good Morning, Plant Parent! 🌞</div>
+        <div class="page-subtitle" data-i18n="dash_subtitle">Here's what needs attention today</div>
+      </div>
+      <div class="stat-grid" id="statGrid"></div>
+      <div class="care-today-section">
+        <div class="section-title">
+          <span data-i18n="dash_care_today">Needs Care Today</span>
+          <span class="badge" id="careTodayBadge">0</span>
+        </div>
+        <div class="care-cards" id="careTodayCards">
+          <div class="empty-state">
+            <div class="es-icon">✅</div>
+            <div class="es-title" data-i18n="dash_all_done">All caught up!</div>
+            <div data-i18n="dash_no_care">No plants need care today. Great job!</div>
+          </div>
+        </div>
+      </div>
+      <div class="care-today-section" style="margin-top:8px">
+        <div class="section-title" data-i18n="dash_upcoming">Upcoming This Week</div>
+        <div class="care-cards" id="upcomingCards"></div>
+      </div>
+    </div>
+
+    <!-- MY PLANTS VIEW -->
+    <div class="view" id="view-myplants">
+      <div class="page-header">
+        <div class="page-title" data-i18n="plants_title">My Plants</div>
+        <div class="page-subtitle" data-i18n="plants_subtitle">Manage your plant collection</div>
+      </div>
+      <div class="plants-toolbar">
+        <div class="search-bar">
+          <span>🔍</span>
+          <input type="text" id="plantSearch" data-i18n-placeholder="search_plants" placeholder="Search plants..." oninput="renderMyPlants()">
+        </div>
+        <button class="add-plant-btn" onclick="openAddPlantModal()">
+          <span>＋</span> <span data-i18n="add_plant">Add Plant</span>
+        </button>
+      </div>
+      <div class="filter-tabs" id="plantFilterTabs"></div>
+      <div class="plants-grid" id="plantsGrid"></div>
+    </div>
+
+    <!-- CATALOG VIEW -->
+    <div class="view" id="view-catalog">
+      <div class="page-header">
+        <div class="page-title" data-i18n="catalog_title">Plant Catalog</div>
+        <div class="page-subtitle" data-i18n="catalog_subtitle">50+ houseplants with full care guides</div>
+      </div>
+      <div class="search-bar" style="margin-bottom:20px;max-width:300px">
+        <span>🔍</span>
+        <input type="text" id="catalogSearch" placeholder="Search catalog..." oninput="renderCatalog()">
+      </div>
+      <div class="filter-tabs" id="catalogFilterTabs"></div>
+      <div class="catalog-grid" id="catalogGrid"></div>
+    </div>
+
+    <!-- DISEASE AI VIEW -->
+    <div class="view" id="view-disease">
+      <div class="page-header">
+        <div class="page-title" data-i18n="disease_title">🔬 Disease Identifier</div>
+        <div class="page-subtitle" data-i18n="disease_subtitle">Select symptoms and get AI-powered diagnosis</div>
+      </div>
+      <div class="disease-grid">
+        <div class="disease-panel">
+          <div class="section-title" data-i18n="disease_symptoms">Select Symptoms</div>
+          <div class="symptom-grid" id="symptomGrid"></div>
+          <div class="form-group" style="margin-top:12px">
+            <label class="form-label" data-i18n="disease_plant_type">Plant Type (optional)</label>
+            <select class="form-select" id="diseasePlantType">
+              <option value="">Any / Unknown</option>
+            </select>
+          </div>
+          <button class="diagnose-btn" onclick="diagnose()">
+            <span>🤖</span> <span data-i18n="disease_diagnose">Diagnose with AI</span>
+          </button>
+        </div>
+        <div class="disease-panel">
+          <div class="section-title" data-i18n="disease_diagnosis">Diagnosis & Treatment</div>
+          <div id="diagnosisArea">
+            <div class="empty-state" style="padding:40px 0">
+              <div class="es-icon">🌿</div>
+              <div data-i18n="disease_hint">Select symptoms and click Diagnose</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY VIEW -->
+    <div class="view" id="view-history">
+      <div class="page-header">
+        <div class="page-title" data-i18n="history_title">Care History</div>
+        <div class="page-subtitle" data-i18n="history_subtitle">Complete timeline of all plant care activities</div>
+      </div>
+      <div class="filter-tabs" id="historyFilterTabs"></div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bnav-item active" data-view="dashboard" onclick="switchView('dashboard',this)">
+      <span class="bnav-icon">🏡</span><span class="bnav-label" data-i18n="nav_dashboard">Home</span>
+    </button>
+    <button class="bnav-item" data-view="myplants" onclick="switchView('myplants',this)">
+      <span class="bnav-icon">🌱</span><span class="bnav-label" data-i18n="nav_plants">Plants</span>
+    </button>
+    <button class="bnav-item" data-view="catalog" onclick="switchView('catalog',this)">
+      <span class="bnav-icon">📚</span><span class="bnav-label" data-i18n="nav_catalog">Catalog</span>
+    </button>
+    <button class="bnav-item" data-view="disease" onclick="switchView('disease',this)">
+      <span class="bnav-icon">🔬</span><span class="bnav-label" data-i18n="nav_disease">AI</span>
+    </button>
+    <button class="bnav-item" data-view="history" onclick="switchView('history',this)">
+      <span class="bnav-icon">📋</span><span class="bnav-label" data-i18n="nav_history">History</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ADD PLANT MODAL -->
+<div class="modal-overlay" id="addPlantModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" data-i18n="modal_add_plant">Add New Plant</div>
+      <button class="modal-close" onclick="closeModal('addPlantModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="form_plant_icon">Plant Icon</label>
+      <div class="emoji-picker" id="emojiPicker"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="form_name">Plant Name *</label>
+      <input class="form-input" type="text" id="fName" placeholder="e.g. My Monstera">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" data-i18n="form_category">Category</label>
+        <select class="form-select" id="fCategory"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="form_location">Location</label>
+        <input class="form-input" type="text" id="fLocation" placeholder="e.g. Living Room">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" data-i18n="form_water_days">Water every (days)</label>
+        <input class="form-input" type="number" id="fWaterDays" value="7" min="1" max="90">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="form_fertilize_days">Fertilize every (days)</label>
+        <input class="form-input" type="number" id="fFertilizeDays" value="30" min="7" max="365">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="form_notes">Notes</label>
+      <input class="form-input" type="text" id="fNotes" placeholder="Any special care notes...">
+    </div>
+    <button class="form-submit" onclick="savePlant()" data-i18n="form_save">Save Plant 🌱</button>
+  </div>
+</div>
+
+<!-- PLANT DETAIL MODAL -->
+<div class="modal-overlay" id="plantDetailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="detailTitle">Plant Details</div>
+      <button class="modal-close" onclick="closeModal('plantDetailModal')">✕</button>
+    </div>
+    <div id="plantDetailContent"></div>
+  </div>
+</div>
+
+<!-- LANGUAGE MODAL -->
+<div class="modal-overlay" id="langModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title">🌐 Language</div>
+      <button class="modal-close" onclick="closeModal('langModal')">✕</button>
+    </div>
+    <p style="font-size:14px;color:var(--text-soft)">Choose your preferred language</p>
+    <div class="lang-grid" id="langGrid"></div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// TRANSLATIONS
+// ═══════════════════════════════════════════════
+const LANGS = {
+  en: {
+    code:'en', name:'English', native:'English',
+    nav_dashboard:'Dashboard', nav_plants:'My Plants', nav_catalog:'Catalog',
+    nav_disease:'Disease AI', nav_history:'History', nav_language:'Language',
+    dash_title:'Good Morning, Plant Parent! 🌞', dash_subtitle:'Here\'s what needs attention today',
+    dash_care_today:'Needs Care Today', dash_all_done:'All caught up!',
+    dash_no_care:'No plants need care today. Great job!', dash_upcoming:'Upcoming This Week',
+    plants_title:'My Plants', plants_subtitle:'Manage your plant collection',
+    catalog_title:'Plant Catalog', catalog_subtitle:'50+ houseplants with full care guides',
+    disease_title:'🔬 Disease Identifier', disease_subtitle:'Select symptoms and get AI-powered diagnosis',
+    disease_symptoms:'Select Symptoms', disease_plant_type:'Plant Type (optional)',
+    disease_diagnose:'Diagnose with AI', disease_diagnosis:'Diagnosis & Treatment',
+    disease_hint:'Select symptoms and click Diagnose',
+    history_title:'Care History', history_subtitle:'Complete timeline of all plant care activities',
+    modal_add_plant:'Add New Plant', form_plant_icon:'Plant Icon', form_name:'Plant Name *',
+    form_category:'Category', form_location:'Location', form_water_days:'Water every (days)',
+    form_fertilize_days:'Fertilize every (days)', form_notes:'Notes', form_save:'Save Plant 🌱',
+    add_plant:'Add Plant', search_plants:'Search plants...',
+    stat_total:'Total Plants', stat_need_care:'Need Care Today', stat_healthy:'Healthy',
+    stat_history:'Care Events',
+    done:'Done ✓', mark_done:'Mark Done', water:'Water', fertilize:'Fertilize', mist:'Mist',
+    toast_saved:'Plant saved!', toast_done:'Marked as done!', toast_notif:'Notifications enabled!',
+    toast_notif_denied:'Please allow notifications in browser settings.',
+    watering:'Watering', light:'Light', difficulty:'Difficulty',
+    add_to_collection:'+ Add to My Plants', details:'Details', care_schedule:'Care Schedule',
+    last_care:'Last cared', next_care:'Next care', health:'Health',
+    no_plants:'No plants yet! Add your first plant.',
+    diagnosing:'Diagnosing symptoms with AI...',
+    treatment_steps:'Recommended Treatment Steps',
+    care_history:'Care History',
+    days_ago:'days ago', today:'Today', yesterday:'Yesterday', days:'days',
+  },
+  kn: {
+    code:'kn', name:'Kannada', native:'ಕನ್ನಡ',
+    nav_dashboard:'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್', nav_plants:'ನನ್ನ ಗಿಡಗಳು', nav_catalog:'ಕ್ಯಾಟಲಾಗ್',
+    nav_disease:'ರೋಗ AI', nav_history:'ಇತಿಹಾಸ', nav_language:'ಭಾಷೆ',
+    dash_title:'ಶುಭೋದಯ, ಗಿಡ ಪ್ರೇಮಿ! 🌞', dash_subtitle:'ಇಂದು ಗಮನ ಬೇಕಾಗಿರುವ ವಿಷಯಗಳು',
+    dash_care_today:'ಇಂದು ಆರೈಕೆ ಬೇಕು', dash_all_done:'ಎಲ್ಲವೂ ಮುಗಿದಿದೆ!',
+    dash_no_care:'ಇಂದು ಯಾವ ಗಿಡಕ್ಕೂ ಆರೈಕೆ ಬೇಡ. ಭಲೇ!', dash_upcoming:'ಈ ವಾರ ಬರಲಿರುವ',
+    plants_title:'ನನ್ನ ಗಿಡಗಳು', plants_subtitle:'ನಿಮ್ಮ ಗಿಡಗಳ ಸಂಗ್ರಹ ನಿರ್ವಹಿಸಿ',
+    catalog_title:'ಗಿಡ ಕ್ಯಾಟಲಾಗ್', catalog_subtitle:'50+ ಮನೆ ಗಿಡಗಳ ಪೂರ್ಣ ಮಾಹಿತಿ',
+    disease_title:'🔬 ರೋಗ ಗುರುತಿಸುವಿಕೆ', disease_subtitle:'ಲಕ್ಷಣಗಳನ್ನು ಆರಿಸಿ AI ರೋಗ ನಿರ್ಣಯ ಪಡೆಯಿರಿ',
+    disease_symptoms:'ಲಕ್ಷಣಗಳನ್ನು ಆರಿಸಿ', disease_plant_type:'ಗಿಡದ ವಿಧ (ಐಚ್ಛಿಕ)',
+    disease_diagnose:'AI ಯಿಂದ ರೋಗ ನಿರ್ಣಯ', disease_diagnosis:'ರೋಗ ನಿರ್ಣಯ ಮತ್ತು ಚಿಕಿತ್ಸೆ',
+    disease_hint:'ಲಕ್ಷಣಗಳನ್ನು ಆರಿಸಿ ರೋಗ ನಿರ್ಣಯ ಒತ್ತಿ',
+    history_title:'ಆರೈಕೆ ಇತಿಹಾಸ', history_subtitle:'ಎಲ್ಲ ಗಿಡ ಆರೈಕೆ ಚಟುವಟಿಕೆಗಳ ಸಂಪೂರ್ಣ ಸಮಯರೇಖೆ',
+    modal_add_plant:'ಹೊಸ ಗಿಡ ಸೇರಿಸಿ', form_plant_icon:'ಗಿಡದ ಐಕಾನ್', form_name:'ಗಿಡದ ಹೆಸರು *',
+    form_category:'ವರ್ಗ', form_location:'ಸ್ಥಳ', form_water_days:'ನೀರು ಕೊಡಿ (ದಿನಗಳಲ್ಲಿ)',
+    form_fertilize_days:'ಗೊಬ್ಬರ ಕೊಡಿ (ದಿನಗಳಲ್ಲಿ)', form_notes:'ಟಿಪ್ಪಣಿಗಳು', form_save:'ಗಿಡ ಉಳಿಸಿ 🌱',
+    add_plant:'ಗಿಡ ಸೇರಿಸಿ', search_plants:'ಗಿಡ ಹುಡುಕಿ...',
+    stat_total:'ಒಟ್ಟು ಗಿಡಗಳು', stat_need_care:'ಇಂದು ಆರೈಕೆ ಬೇಕು', stat_healthy:'ಆರೋಗ್ಯಕರ',
+    stat_history:'ಆರೈಕೆ ಘಟನೆಗಳು',
+    done:'ಮುಗಿಸಿ ✓', mark_done:'ಮುಗಿದಿದೆ', water:'ನೀರು', fertilize:'ಗೊಬ್ಬರ', mist:'ಮಂಜು',
+    toast_saved:'ಗಿಡ ಉಳಿಸಲಾಗಿದೆ!', toast_done:'ಮುಗಿದಿದೆ ಎಂದು ಗುರುತಿಸಲಾಗಿದೆ!',
+    toast_notif:'ಅಧಿಸೂಚನೆಗಳು ಸಕ್ರಿಯಗೊಂಡಿವೆ!', toast_notif_denied:'ದಯವಿಟ್ಟು ಬ್ರೌಸರ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಅಧಿಸೂಚನೆಗಳನ್ನು ಅನುಮತಿಸಿ.',
+    watering:'ನೀರಾವರಿ', light:'ಬೆಳಕು', difficulty:'ಕಷ್ಟ ಮಟ್ಟ',
+    add_to_collection:'+ ನನ್ನ ಸಂಗ್ರಹಕ್ಕೆ ಸೇರಿಸಿ', details:'ವಿವರಗಳು', care_schedule:'ಆರೈಕೆ ವೇಳಾಪಟ್ಟಿ',
+    last_care:'ಕೊನೆ ಆರೈಕೆ', next_care:'ಮುಂದಿನ ಆರೈಕೆ', health:'ಆರೋಗ್ಯ',
+    no_plants:'ಇನ್ನೂ ಗಿಡಗಳಿಲ್ಲ! ನಿಮ್ಮ ಮೊದಲ ಗಿಡ ಸೇರಿಸಿ.',
+    diagnosing:'AI ಯೊಂದಿಗೆ ಲಕ್ಷಣಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...',
+    treatment_steps:'ಶಿಫಾರಸು ಮಾಡಿದ ಚಿಕಿತ್ಸಾ ಹಂತಗಳು',
+    care_history:'ಆರೈಕೆ ಇತಿಹಾಸ',
+    days_ago:'ದಿನಗಳ ಹಿಂದೆ', today:'ಇಂದು', yesterday:'ನಿನ್ನೆ', days:'ದಿನಗಳು',
+  },
+  hi: {
+    code:'hi', name:'Hindi', native:'हिन्दी',
+    nav_dashboard:'डैशबोर्ड', nav_plants:'मेरे पौधे', nav_catalog:'सूची',
+    nav_disease:'रोग AI', nav_history:'इतिहास', nav_language:'भाषा',
+    dash_title:'सुप्रभात, पौधे प्रेमी! 🌞', dash_subtitle:'आज क्या ध्यान देना है',
+    dash_care_today:'आज देखभाल जरूरी', dash_all_done:'सब हो गया!',
+    dash_no_care:'आज किसी पौधे को देखभाल की जरूरत नहीं। शाबाश!', dash_upcoming:'इस हफ्ते आने वाले',
+    plants_title:'मेरे पौधे', plants_subtitle:'अपने पौधों का संग्रह प्रबंधित करें',
+    catalog_title:'पौधों की सूची', catalog_subtitle:'50+ घरेलू पौधों की पूरी जानकारी',
+    disease_title:'🔬 रोग पहचानकर्ता', disease_subtitle:'लक्षण चुनें और AI से निदान पाएं',
+    disease_symptoms:'लक्षण चुनें', disease_plant_type:'पौधे का प्रकार (वैकल्पिक)',
+    disease_diagnose:'AI से निदान करें', disease_diagnosis:'निदान और उपचार',
+    disease_hint:'लक्षण चुनें और निदान पर क्लिक करें',
+    history_title:'देखभाल इतिहास', history_subtitle:'सभी पौधों की देखभाल गतिविधियों की समयरेखा',
+    modal_add_plant:'नया पौधा जोड़ें', form_plant_icon:'पौधे का आइकन', form_name:'पौधे का नाम *',
+    form_category:'श्रेणी', form_location:'स्थान', form_water_days:'पानी (दिनों में)',
+    form_fertilize_days:'खाद (दिनों में)', form_notes:'नोट्स', form_save:'पौधा सहेजें 🌱',
+    add_plant:'पौधा जोड़ें', search_plants:'पौधे खोजें...',
+    stat_total:'कुल पौधे', stat_need_care:'आज देखभाल जरूरी', stat_healthy:'स्वस्थ',
+    stat_history:'देखभाल घटनाएं',
+    done:'हो गया ✓', mark_done:'पूरा करें', water:'पानी', fertilize:'खाद', mist:'छिड़काव',
+    toast_saved:'पौधा सहेजा गया!', toast_done:'पूरा किया गया!',
+    toast_notif:'सूचनाएं सक्रिय!', toast_notif_denied:'कृपया ब्राउजर सेटिंग्स में सूचनाएं अनुमति दें।',
+    watering:'सिंचाई', light:'प्रकाश', difficulty:'कठिनाई',
+    add_to_collection:'+ मेरे संग्रह में जोड़ें', details:'विवरण', care_schedule:'देखभाल अनुसूची',
+    last_care:'अंतिम देखभाल', next_care:'अगली देखभाल', health:'स्वास्थ्य',
+    no_plants:'अभी कोई पौधा नहीं! पहला पौधा जोड़ें।',
+    diagnosing:'AI से लक्षणों का विश्लेषण हो रहा है...',
+    treatment_steps:'अनुशंसित उपचार चरण',
+    care_history:'देखभाल इतिहास',
+    days_ago:'दिन पहले', today:'आज', yesterday:'कल', days:'दिन',
+  },
+  mr: {
+    code:'mr', name:'Marathi', native:'मराठी',
+    nav_dashboard:'डॅशबोर्ड', nav_plants:'माझी झाडे', nav_catalog:'यादी',
+    nav_disease:'रोग AI', nav_history:'इतिहास', nav_language:'भाषा',
+    dash_title:'सुप्रभात, वनस्पती प्रेमी! 🌞', dash_subtitle:'आज काय लक्ष द्यायचे आहे',
+    dash_care_today:'आज काळजी हवी', dash_all_done:'सर्व झाले!',
+    dash_no_care:'आज कोणत्या झाडाला काळजीची गरज नाही. छान!', dash_upcoming:'या आठवड्यात येणारे',
+    plants_title:'माझी झाडे', plants_subtitle:'आपल्या झाडांचा संग्रह व्यवस्थापित करा',
+    catalog_title:'वनस्पती यादी', catalog_subtitle:'50+ घरगुती झाडांची संपूर्ण माहिती',
+    disease_title:'🔬 रोग ओळखकर्ता', disease_subtitle:'लक्षणे निवडा आणि AI निदान मिळवा',
+    disease_symptoms:'लक्षणे निवडा', disease_plant_type:'झाडाचा प्रकार (पर्यायी)',
+    disease_diagnose:'AI ने निदान करा', disease_diagnosis:'निदान आणि उपचार',
+    disease_hint:'लक्षणे निवडा आणि निदानावर क्लिक करा',
+    history_title:'काळजी इतिहास', history_subtitle:'सर्व झाड काळजी क्रियाकलापांची टाइमलाइन',
+    modal_add_plant:'नवीन झाड जोडा', form_plant_icon:'झाडाचे चिन्ह', form_name:'झाडाचे नाव *',
+    form_category:'श्रेणी', form_location:'ठिकाण', form_water_days:'पाणी (दिवसांत)',
+    form_fertilize_days:'खत (दिवसांत)', form_notes:'नोंदी', form_save:'झाड जतन करा 🌱',
+    add_plant:'झाड जोडा', search_plants:'झाडे शोधा...',
+    stat_total:'एकूण झाडे', stat_need_care:'आज काळजी हवी', stat_healthy:'निरोगी',
+    stat_history:'काळजी घटना',
+    done:'झाले ✓', mark_done:'पूर्ण करा', water:'पाणी', fertilize:'खत', mist:'फवारणी',
+    toast_saved:'झाड जतन केले!', toast_done:'पूर्ण झाले!',
+    toast_notif:'सूचना सक्रिय!', toast_notif_denied:'कृपया ब्राउझर सेटिंग्जमध्ये सूचनांना परवानगी द्या.',
+    watering:'सिंचन', light:'प्रकाश', difficulty:'कठीणता',
+    add_to_collection:'+ माझ्या संग्रहात जोडा', details:'तपशील', care_schedule:'काळजी वेळापत्रक',
+    last_care:'शेवटची काळजी', next_care:'पुढील काळजी', health:'आरोग्य',
+    no_plants:'अजून झाडे नाहीत! पहिले झाड जोडा.',
+    diagnosing:'AI ने लक्षणांचे विश्लेषण होत आहे...',
+    treatment_steps:'शिफारस केलेल्या उपचार पायऱ्या',
+    care_history:'काळजी इतिहास',
+    days_ago:'दिवसांपूर्वी', today:'आज', yesterday:'काल', days:'दिवस',
+  },
+  te: {
+    code:'te', name:'Telugu', native:'తెలుగు',
+    nav_dashboard:'డాష్‌బోర్డ్', nav_plants:'నా మొక్కలు', nav_catalog:'జాబితా',
+    nav_disease:'వ్యాధి AI', nav_history:'చరిత్ర', nav_language:'భాష',
+    dash_title:'శుభోదయం, మొక్కల ప్రేమికుడు! 🌞', dash_subtitle:'ఈరోజు శ్రద్ధ అవసరమైనవి',
+    dash_care_today:'ఈరోజు సంరక్షణ అవసరం', dash_all_done:'అన్నీ అయిపోయాయి!',
+    dash_no_care:'ఈరోజు ఏ మొక్కకూ సంరక్షణ అవసరం లేదు. గొప్ప!', dash_upcoming:'ఈ వారంలో రానున్నవి',
+    plants_title:'నా మొక్కలు', plants_subtitle:'మీ మొక్కల సంకలనాన్ని నిర్వహించండి',
+    catalog_title:'మొక్కల జాబితా', catalog_subtitle:'50+ గృహ మొక్కలకు పూర్తి సంరక్షణ మార్గదర్శి',
+    disease_title:'🔬 వ్యాధి గుర్తింపు', disease_subtitle:'లక్షణాలు ఎంచుకుని AI నిర్ధారణ పొందండి',
+    disease_symptoms:'లక్షణాలు ఎంచుకోండి', disease_plant_type:'మొక్క రకం (ఐచ్ఛికం)',
+    disease_diagnose:'AI తో నిర్ధారించు', disease_diagnosis:'నిర్ధారణ మరియు చికిత్స',
+    disease_hint:'లక్షణాలు ఎంచుకుని నిర్ధారించు నొక్కండి',
+    history_title:'సంరక్షణ చరిత్ర', history_subtitle:'అన్ని మొక్కల సంరక్షణ కార్యకలాపాల టైమ్‌లైన్',
+    modal_add_plant:'కొత్త మొక్క జోడించు', form_plant_icon:'మొక్క చిహ్నం', form_name:'మొక్క పేరు *',
+    form_category:'వర్గం', form_location:'స్థానం', form_water_days:'నీరు (రోజులలో)',
+    form_fertilize_days:'ఎరువు (రోజులలో)', form_notes:'గమనికలు', form_save:'మొక్క సేవ్ చేయి 🌱',
+    add_plant:'మొక్క జోడించు', search_plants:'మొక్కలు వెతకండి...',
+    stat_total:'మొత్తం మొక్కలు', stat_need_care:'ఈరోజు సంరక్షణ అవసరం', stat_healthy:'ఆరోగ్యంగా',
+    stat_history:'సంరక్షణ సంఘటనలు',
+    done:'అయింది ✓', mark_done:'పూర్తి చేయి', water:'నీరు', fertilize:'ఎరువు', mist:'పొగ',
+    toast_saved:'మొక్క సేవ్ చేయబడింది!', toast_done:'పూర్తి అయినట్టు గుర్తించబడింది!',
+    toast_notif:'నోటిఫికేషన్లు సక్రియమయ్యాయి!', toast_notif_denied:'దయచేసి బ్రౌజర్ సెట్టింగ్‌లలో నోటిఫికేషన్లను అనుమతించండి.',
+    watering:'నీటిపారుదల', light:'వెలుతురు', difficulty:'కష్టం',
+    add_to_collection:'+ నా సంకలనానికి జోడించు', details:'వివరాలు', care_schedule:'సంరక్షణ షెడ్యూల్',
+    last_care:'చివరి సంరక్షణ', next_care:'తదుపరి సంరక్షణ', health:'ఆరోగ్యం',
+    no_plants:'ఇంకా మొక్కలు లేవు! మీ మొదటి మొక్క జోడించండి.',
+    diagnosing:'AI తో లక్షణాలు విశ్లేషిస్తోంది...',
+    treatment_steps:'సిఫార్సు చేసిన చికిత్స దశలు',
+    care_history:'సంరక్షణ చరిత్ర',
+    days_ago:'రోజుల క్రితం', today:'ఈరోజు', yesterday:'నిన్న', days:'రోజులు',
+  },
+  ta: {
+    code:'ta', name:'Tamil', native:'தமிழ்',
+    nav_dashboard:'டாஷ்போர்டு', nav_plants:'என் செடிகள்', nav_catalog:'பட்டியல்',
+    nav_disease:'நோய் AI', nav_history:'வரலாறு', nav_language:'மொழி',
+    dash_title:'காலை வணக்கம், தாவர காதலர்! 🌞', dash_subtitle:'இன்று கவனிக்க வேண்டியவை',
+    dash_care_today:'இன்று கவனிப்பு தேவை', dash_all_done:'எல்லாம் முடிந்தது!',
+    dash_no_care:'இன்று எந்த செடிக்கும் கவனிப்பு தேவையில்லை. சாதனை!', dash_upcoming:'இந்த வாரம் வரவிருப்பவை',
+    plants_title:'என் செடிகள்', plants_subtitle:'உங்கள் தாவர தொகுப்பை நிர்வகிக்கவும்',
+    catalog_title:'தாவர பட்டியல்', catalog_subtitle:'50+ வீட்டு செடிகளுக்கு முழு கவனிப்பு வழிகாட்டி',
+    disease_title:'🔬 நோய் அடையாளம்', disease_subtitle:'அறிகுறிகளை தேர்ந்தெடுத்து AI மூலம் நோயறிதல் பெறுக',
+    disease_symptoms:'அறிகுறிகளை தேர்வு செய்யவும்', disease_plant_type:'தாவர வகை (விருப்பத்திற்கு)',
+    disease_diagnose:'AI மூலம் நோயறிதல்', disease_diagnosis:'நோயறிதல் மற்றும் சிகிச்சை',
+    disease_hint:'அறிகுறிகளை தேர்ந்தெடுத்து நோயறிதல் கிளிக் செய்யவும்',
+    history_title:'கவனிப்பு வரலாறு', history_subtitle:'அனைத்து தாவர கவனிப்பு செயல்பாடுகளின் காலவரிசை',
+    modal_add_plant:'புதிய செடி சேர்', form_plant_icon:'செடியின் சின்னம்', form_name:'செடியின் பெயர் *',
+    form_category:'வகை', form_location:'இடம்', form_water_days:'நீர் (நாட்களில்)',
+    form_fertilize_days:'உரம் (நாட்களில்)', form_notes:'குறிப்புகள்', form_save:'செடியை சேமி 🌱',
+    add_plant:'செடி சேர்', search_plants:'செடிகளை தேடுக...',
+    stat_total:'மொத்த செடிகள்', stat_need_care:'இன்று கவனிப்பு தேவை', stat_healthy:'ஆரோக்கியமான',
+    stat_history:'கவனிப்பு நிகழ்வுகள்',
+    done:'முடிந்தது ✓', mark_done:'முடிந்தது', water:'நீர்', fertilize:'உரம்', mist:'தெளிப்பு',
+    toast_saved:'செடி சேமிக்கப்பட்டது!', toast_done:'முடிந்ததாக குறிக்கப்பட்டது!',
+    toast_notif:'அறிவிப்புகள் செயல்படுத்தப்பட்டன!', toast_notif_denied:'உலாவி அமைப்புகளில் அறிவிப்புகளை அனுமதிக்கவும்.',
+    watering:'நீர்ப்பாசனம்', light:'ஒளி', difficulty:'சிரமம்',
+    add_to_collection:'+ என் தொகுப்பில் சேர்', details:'விவரங்கள்', care_schedule:'கவனிப்பு அட்டவணை',
+    last_care:'கடைசி கவனிப்பு', next_care:'அடுத்த கவனிப்பு', health:'ஆரோக்கியம்',
+    no_plants:'இன்னும் செடிகள் இல்லை! உங்கள் முதல் செடியை சேர்க்கவும்.',
+    diagnosing:'AI மூலம் அறிகுறிகளை பகுப்பாய்வு செய்கிறது...',
+    treatment_steps:'பரிந்துரைக்கப்பட்ட சிகிச்சை படிகள்',
+    care_history:'கவனிப்பு வரலாறு',
+    days_ago:'நாட்களுக்கு முன்', today:'இன்று', yesterday:'நேற்று', days:'நாட்கள்',
+  },
+};
+
+let currentLang = 'en';
+function t(key) { return (LANGS[currentLang]||LANGS.en)[key] || LANGS.en[key] || key; }
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (t(k)) el.textContent = t(k);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const k = el.getAttribute('data-i18n-placeholder');
+    if (t(k)) el.placeholder = t(k);
+  });
+  document.querySelector('.nav-lang-btn').textContent = '🌐 ' + (LANGS[currentLang]||LANGS.en).code.toUpperCase();
+}
+
+// ═══════════════════════════════════════════════
+// PLANT CATALOG (50+ plants)
+// ═══════════════════════════════════════════════
+const CATALOG = [
+  {id:'c1',name:'Monstera Deliciosa',sci:'Monstera deliciosa',emoji:'🌿',category:'Tropical',water:7,fertilize:30,light:'Bright indirect',difficulty:'Easy',tags:['Air purifying','Statement plant'],tip:'Wipe leaves monthly to keep them glossy.'},
+  {id:'c2',name:'Snake Plant',sci:'Sansevieria trifasciata',emoji:'🪴',category:'Succulents',water:14,fertilize:60,light:'Low to bright',difficulty:'Very Easy',tags:['Air purifying','Low light'],tip:'Allow soil to dry completely before watering.'},
+  {id:'c3',name:'Peace Lily',sci:'Spathiphyllum wallisii',emoji:'🌸',category:'Flowering',water:7,fertilize:30,light:'Low to medium',difficulty:'Easy',tags:['Air purifying','Low light'],tip:'Drooping leaves = needs water.'},
+  {id:'c4',name:'Pothos',sci:'Epipremnum aureum',emoji:'🍃',category:'Trailing',water:7,fertilize:30,light:'Low to bright',difficulty:'Very Easy',tags:['Beginner','Trailing'],tip:'Perfect for hanging baskets.'},
+  {id:'c5',name:'Spider Plant',sci:'Chlorophytum comosum',emoji:'🌱',category:'Hanging',water:7,fertilize:30,light:'Indirect',difficulty:'Very Easy',tags:['Beginner','Air purifying'],tip:'Produces baby plants on long runners.'},
+  {id:'c6',name:'Aloe Vera',sci:'Aloe barbadensis miller',emoji:'🌵',category:'Succulents',water:14,fertilize:60,light:'Bright direct',difficulty:'Easy',tags:['Medicinal','Succulent'],tip:'Gel soothes sunburns and minor cuts.'},
+  {id:'c7',name:'ZZ Plant',sci:'Zamioculcas zamiifolia',emoji:'🌾',category:'Tropical',water:14,fertilize:60,light:'Low to medium',difficulty:'Very Easy',tags:['Low light','Drought tolerant'],tip:'Ideal for offices and dark corners.'},
+  {id:'c8',name:'Fiddle Leaf Fig',sci:'Ficus lyrata',emoji:'🍀',category:'Trees',water:7,fertilize:30,light:'Bright indirect',difficulty:'Hard',tags:['Statement plant','Trending'],tip:'Avoid moving once it finds a happy spot.'},
+  {id:'c9',name:'Boston Fern',sci:'Nephrolepis exaltata',emoji:'🌿',category:'Ferns',water:3,fertilize:30,light:'Indirect',difficulty:'Medium',tags:['Humidity loving','Air purifying'],tip:'Mist daily for best results.'},
+  {id:'c10',name:'Rubber Plant',sci:'Ficus elastica',emoji:'🌳',category:'Trees',water:7,fertilize:30,light:'Bright indirect',difficulty:'Easy',tags:['Statement plant','Low maintenance'],tip:'Wipe leaves with a damp cloth.'},
+  {id:'c11',name:'Philodendron',sci:'Philodendron hederaceum',emoji:'🍃',category:'Tropical',water:7,fertilize:30,light:'Medium indirect',difficulty:'Easy',tags:['Trailing','Beginner'],tip:'Trim leggy growth to encourage bushiness.'},
+  {id:'c12',name:'Chinese Evergreen',sci:'Aglaonema commutatum',emoji:'🌿',category:'Tropical',water:7,fertilize:30,light:'Low to medium',difficulty:'Easy',tags:['Low light','Colorful'],tip:'Tolerates low light better than most.'},
+  {id:'c13',name:'Jade Plant',sci:'Crassula ovata',emoji:'💚',category:'Succulents',water:14,fertilize:60,light:'Bright direct',difficulty:'Easy',tags:['Lucky','Long-lived'],tip:'Can live for decades with minimal care.'},
+  {id:'c14',name:'Lavender',sci:'Lavandula angustifolia',emoji:'💜',category:'Herbs',water:7,fertilize:30,light:'Full sun',difficulty:'Medium',tags:['Fragrant','Medicinal'],tip:'Requires excellent drainage.'},
+  {id:'c15',name:'Basil',sci:'Ocimum basilicum',emoji:'🌿',category:'Herbs',water:3,fertilize:14,light:'Full sun',difficulty:'Easy',tags:['Edible','Annual'],tip:'Pinch flowers to extend leaf production.'},
+  {id:'c16',name:'Mint',sci:'Mentha spicata',emoji:'🌱',category:'Herbs',water:3,fertilize:30,light:'Partial sun',difficulty:'Easy',tags:['Edible','Fast growing'],tip:'Grows aggressively — keep in a container.'},
+  {id:'c17',name:'Christmas Cactus',sci:'Schlumbergera bridgesii',emoji:'🌺',category:'Cacti',water:7,fertilize:30,light:'Bright indirect',difficulty:'Easy',tags:['Flowering','Seasonal'],tip:'Needs cool nights to trigger blooming.'},
+  {id:'c18',name:'Bird of Paradise',sci:'Strelitzia reginae',emoji:'🦜',category:'Tropical',water:7,fertilize:30,light:'Bright direct',difficulty:'Medium',tags:['Statement plant','Tropical'],tip:'Needs a large pot to bloom.'},
+  {id:'c19',name:'Dracaena',sci:'Dracaena marginata',emoji:'🪴',category:'Trees',water:7,fertilize:30,light:'Medium indirect',difficulty:'Easy',tags:['Air purifying','Low maintenance'],tip:'Brown tips indicate fluoride in water — use filtered.'},
+  {id:'c20',name:'Cast Iron Plant',sci:'Aspidistra elatior',emoji:'🌿',category:'Foliage',water:14,fertilize:60,light:'Very low',difficulty:'Very Easy',tags:['Indestructible','Dark corners'],tip:'Almost impossible to kill.'},
+  {id:'c21',name:'Calathea',sci:'Calathea orbifolia',emoji:'🌿',category:'Tropical',water:5,fertilize:30,light:'Medium indirect',difficulty:'Hard',tags:['Patterned leaves','Humidity loving'],tip:'Leaves fold up at night — normal behaviour.'},
+  {id:'c22',name:'Orchid',sci:'Phalaenopsis amabilis',emoji:'🌸',category:'Flowering',water:7,fertilize:14,light:'Bright indirect',difficulty:'Medium',tags:['Flowering','Elegant'],tip:'Water by soaking pot then draining fully.'},
+  {id:'c23',name:'African Violet',sci:'Saintpaulia ionantha',emoji:'💜',category:'Flowering',water:5,fertilize:14,light:'Bright indirect',difficulty:'Medium',tags:['Flowering','Compact'],tip:'Water from the bottom to avoid leaf spots.'},
+  {id:'c24',name:'Cactus',sci:'Cactaceae',emoji:'🌵',category:'Cacti',water:14,fertilize:60,light:'Full sun',difficulty:'Very Easy',tags:['Drought tolerant','Minimal care'],tip:'Needs bright light and dry periods.'},
+  {id:'c25',name:'English Ivy',sci:'Hedera helix',emoji:'🍃',category:'Trailing',water:7,fertilize:30,light:'Medium indirect',difficulty:'Easy',tags:['Trailing','Classic'],tip:'Great for shelves and hanging pots.'},
+  {id:'c26',name:'Begonia',sci:'Begonia rex',emoji:'🌺',category:'Flowering',water:5,fertilize:14,light:'Bright indirect',difficulty:'Medium',tags:['Flowering','Colorful'],tip:'High humidity keeps leaves looking their best.'},
+  {id:'c27',name:'Hoya',sci:'Hoya carnosa',emoji:'⭐',category:'Trailing',water:10,fertilize:30,light:'Bright indirect',difficulty:'Easy',tags:['Trailing','Fragrant flowers'],tip:'Blooms better when slightly root-bound.'},
+  {id:'c28',name:'Wandering Jew',sci:'Tradescantia zebrina',emoji:'💜',category:'Trailing',water:5,fertilize:30,light:'Bright indirect',difficulty:'Very Easy',tags:['Fast growing','Colorful'],tip:'Pinch regularly for dense growth.'},
+  {id:'c29',name:'Bamboo Palm',sci:'Chamaedorea seifrizii',emoji:'🌴',category:'Palms',water:7,fertilize:30,light:'Medium indirect',difficulty:'Easy',tags:['Air purifying','Tropical'],tip:'Loves humidity — great near bathrooms.'},
+  {id:'c30',name:'String of Pearls',sci:'Senecio rowleyanus',emoji:'🔮',category:'Succulents',water:14,fertilize:60,light:'Bright indirect',difficulty:'Medium',tags:['Trailing','Unique'],tip:'Overwatering is the #1 killer.'},
+  {id:'c31',name:'Prayer Plant',sci:'Maranta leuconeura',emoji:'🙏',category:'Tropical',water:5,fertilize:30,light:'Medium indirect',difficulty:'Medium',tags:['Patterned leaves','Unique'],tip:'Leaves fold upward at night.'},
+  {id:'c32',name:'Croton',sci:'Codiaeum variegatum',emoji:'🌈',category:'Tropical',water:5,fertilize:30,light:'Bright direct',difficulty:'Medium',tags:['Colorful','Statement'],tip:'More light = more vibrant leaf color.'},
+  {id:'c33',name:'Norfolk Island Pine',sci:'Araucaria heterophylla',emoji:'🎄',category:'Trees',water:7,fertilize:30,light:'Bright indirect',difficulty:'Easy',tags:['Festive','Unusual'],tip:'A tropical plant despite its pine-like looks.'},
+  {id:'c34',name:'Pilea',sci:'Pilea peperomioides',emoji:'🟢',category:'Tropical',water:7,fertilize:30,light:'Bright indirect',difficulty:'Easy',tags:['Trendy','Propagates easily'],tip:'Rotate regularly for even growth.'},
+  {id:'c35',name:'Anthurium',sci:'Anthurium andraeanum',emoji:'❤️',category:'Flowering',water:7,fertilize:30,light:'Bright indirect',difficulty:'Easy',tags:['Flowering','Long-lasting blooms'],tip:'Red spathes can last for weeks.'},
+  {id:'c36',name:'Parlor Palm',sci:'Chamaedorea elegans',emoji:'🌴',category:'Palms',water:7,fertilize:30,light:'Low to medium',difficulty:'Easy',tags:['Classic','Low light'],tip:'One of the most adaptable indoor palms.'},
+  {id:'c37',name:'Agave',sci:'Agave americana',emoji:'🌵',category:'Succulents',water:21,fertilize:90,light:'Full sun',difficulty:'Easy',tags:['Drought tolerant','Architectural'],tip:'Very sharp spines — handle with care.'},
+  {id:'c38',name:'Coleus',sci:'Plectranthus scutellarioides',emoji:'🌿',category:'Foliage',water:3,fertilize:14,light:'Bright indirect',difficulty:'Easy',tags:['Colorful','Fast growing'],tip:'Pinch flowers to maintain colorful leaves.'},
+  {id:'c39',name:'Rosemary',sci:'Salvia rosmarinus',emoji:'🌿',category:'Herbs',water:7,fertilize:30,light:'Full sun',difficulty:'Medium',tags:['Edible','Fragrant'],tip:'Allow soil to dry slightly between waterings.'},
+  {id:'c40',name:'Venus Flytrap',sci:'Dionaea muscipula',emoji:'😮',category:'Carnivorous',water:5,fertilize:0,light:'Full sun',difficulty:'Hard',tags:['Carnivorous','Unique'],tip:'Use only distilled or rainwater — never tap.'},
+  {id:'c41',name:'Echeveria',sci:'Echeveria elegans',emoji:'🌸',category:'Succulents',water:14,fertilize:60,light:'Bright direct',difficulty:'Easy',tags:['Rosette','Colorful'],tip:'Avoid getting water on leaves — causes rot.'},
+  {id:'c42',name:'Haworthia',sci:'Haworthia fasciata',emoji:'🌵',category:'Succulents',water:14,fertilize:60,light:'Low to bright',difficulty:'Very Easy',tags:['Low light','Desktop'],tip:'Perfect for a windowsill with any light level.'},
+  {id:'c43',name:'Bird\'s Nest Fern',sci:'Asplenium nidus',emoji:'🪺',category:'Ferns',water:5,fertilize:30,light:'Medium indirect',difficulty:'Easy',tags:['Tropical','Unique'],tip:'Don\'t water directly into the center crown.'},
+  {id:'c44',name:'Nerve Plant',sci:'Fittonia albivenis',emoji:'🕸️',category:'Tropical',water:3,fertilize:30,light:'Medium indirect',difficulty:'Medium',tags:['Patterned','Terrarium'],tip:'Great for terrariums due to humidity needs.'},
+  {id:'c45',name:'Umbrella Plant',sci:'Schefflera arboricola',emoji:'☂️',category:'Trees',water:7,fertilize:30,light:'Bright indirect',difficulty:'Easy',tags:['Tropical','Statement'],tip:'Prune regularly to control height.'},
+  {id:'c46',name:'Lemon Tree',sci:'Citrus limon',emoji:'🍋',category:'Fruit',water:7,fertilize:14,light:'Full sun',difficulty:'Hard',tags:['Fruit bearing','Fragrant'],tip:'Needs 8+ hours of direct sun and good drainage.'},
+  {id:'c47',name:'Coffee Plant',sci:'Coffea arabica',emoji:'☕',category:'Tropical',water:7,fertilize:30,light:'Medium indirect',difficulty:'Medium',tags:['Unique','Edible'],tip:'Will produce berries if conditions are right!'},
+  {id:'c48',name:'Alocasia',sci:'Alocasia amazonica',emoji:'🌿',category:'Tropical',water:5,fertilize:30,light:'Bright indirect',difficulty:'Hard',tags:['Statement','Dramatic'],tip:'Goes dormant in winter — reduce watering.'},
+  {id:'c49',name:'Oxalis',sci:'Oxalis triangularis',emoji:'🍀',category:'Flowering',water:5,fertilize:30,light:'Bright indirect',difficulty:'Easy',tags:['Unique','Purple'],tip:'Closes leaves at night or in darkness.'},
+  {id:'c50',name:'Staghorn Fern',sci:'Platycerium bifurcatum',emoji:'🦌',category:'Ferns',water:7,fertilize:30,light:'Bright indirect',difficulty:'Medium',tags:['Mounted','Statement'],tip:'Often grown mounted on wood or cork bark.'},
+  {id:'c51',name:'Cyclamen',sci:'Cyclamen persicum',emoji:'🌸',category:'Flowering',water:5,fertilize:14,light:'Bright indirect',difficulty:'Medium',tags:['Flowering','Winter bloomer'],tip:'Loves cool temperatures (10–18°C).'},
+  {id:'c52',name:'Bonsai',sci:'Various species',emoji:'🌳',category:'Bonsai',water:3,fertilize:14,light:'Bright indirect',difficulty:'Expert',tags:['Art form','Patience'],tip:'A lifelong practice — start with juniper or ficus.'},
+];
+
+const CATEGORIES = [...new Set(CATALOG.map(p=>p.category))];
+
+const SYMPTOMS = [
+  {id:'s1',label:'Yellow Leaves',emoji:'🟡'},{id:'s2',label:'Brown Spots',emoji:'🟤'},
+  {id:'s3',label:'Wilting',emoji:'🥀'},{id:'s4',label:'Drooping',emoji:'↘️'},
+  {id:'s5',label:'White Powder',emoji:'🤍'},{id:'s6',label:'Sticky Leaves',emoji:'💦'},
+  {id:'s7',label:'Holes in Leaves',emoji:'🕳️'},{id:'s8',label:'Curling Leaves',emoji:'🌀'},
+  {id:'s9',label:'Leggy Growth',emoji:'↕️'},{id:'s10',label:'Root Rot',emoji:'🫚'},
+  {id:'s11',label:'Pale Leaves',emoji:'⬜'},{id:'s12',label:'Leaf Drop',emoji:'🍂'},
+  {id:'s13',label:'Mushy Stems',emoji:'💧'},{id:'s14',label:'Tiny Bugs',emoji:'🐛'},
+  {id:'s15',label:'Webbing',emoji:'🕸️'},{id:'s16',label:'Black Tips',emoji:'⬛'},
+];
+
+// ═══════════════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════════════
+let plants = JSON.parse(localStorage.getItem('lm_plants')||'[]');
+let careHistory = JSON.parse(localStorage.getItem('lm_history')||'[]');
+let selectedEmoji = '🌿';
+let selectedSymptoms = [];
+let catalogFilter = 'All';
+let plantFilter = 'All';
+let historyFilter = 'All';
+
+function saveData() {
+  localStorage.setItem('lm_plants', JSON.stringify(plants));
+  localStorage.setItem('lm_history', JSON.stringify(careHistory));
+}
+
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+function switchView(view, el) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.sidebar-item,.bnav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll(`[data-view="${view}"]`).forEach(b=>b.classList.add('active'));
+  if(view==='dashboard') renderDashboard();
+  if(view==='myplants') renderMyPlants();
+  if(view==='catalog') renderCatalog();
+  if(view==='disease') renderDiseaseView();
+  if(view==='history') renderHistory();
+}
+
+// ═══════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════
+function renderDashboard() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayTasks = [];
+  const upcomingTasks = [];
+
+  plants.forEach(p => {
+    const lastW = p.lastWatered ? new Date(p.lastWatered) : new Date(Date.now()-p.waterDays*864e5);
+    const nextW = new Date(lastW.getTime() + p.waterDays*864e5); nextW.setHours(0,0,0,0);
+    const daysToW = Math.round((nextW-today)/864e5);
+    if(daysToW<=0) todayTasks.push({plant:p,task:'water',daysOverdue:-daysToW});
+    else if(daysToW<=7) upcomingTasks.push({plant:p,task:'water',daysTo:daysToW});
+
+    const lastF = p.lastFertilized ? new Date(p.lastFertilized) : new Date(Date.now()-p.fertilizeDays*864e5);
+    const nextF = new Date(lastF.getTime() + p.fertilizeDays*864e5); nextF.setHours(0,0,0,0);
+    const daysToF = Math.round((nextF-today)/864e5);
+    if(daysToF<=0) todayTasks.push({plant:p,task:'fertilize',daysOverdue:-daysToF});
+    else if(daysToF<=7) upcomingTasks.push({plant:p,task:'fertilize',daysTo:daysToF});
+  });
+
+  // Stats
+  const healthy = plants.filter(p=>{
+    const lastW = p.lastWatered ? new Date(p.lastWatered) : new Date(0);
+    return (Date.now()-lastW)/864e5 < p.waterDays*1.5;
+  }).length;
+  document.getElementById('statGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-icon">🌿</div><div><div class="stat-num">${plants.length}</div><div class="stat-label">${t('stat_total')}</div></div></div>
+    <div class="stat-card"><div class="stat-icon">💧</div><div><div class="stat-num">${todayTasks.length}</div><div class="stat-label">${t('stat_need_care')}</div></div></div>
+    <div class="stat-card"><div class="stat-icon">💚</div><div><div class="stat-num">${healthy}</div><div class="stat-label">${t('stat_healthy')}</div></div></div>
+    <div class="stat-card"><div class="stat-icon">📋</div><div><div class="stat-num">${careHistory.length}</div><div class="stat-label">${t('stat_history')}</div></div></div>
+  `;
+
+  document.getElementById('careTodayBadge').textContent = todayTasks.length;
+  const ccEl = document.getElementById('careTodayCards');
+  if(todayTasks.length===0) {
+    ccEl.innerHTML = `<div class="empty-state"><div class="es-icon">✅</div><div class="es-title">${t('dash_all_done')}</div><div>${t('dash_no_care')}</div></div>`;
+  } else {
+    ccEl.innerHTML = todayTasks.map(task=>careCardHTML(task, true)).join('');
+  }
+  document.getElementById('upcomingCards').innerHTML = upcomingTasks.length
+    ? upcomingTasks.map(task=>careCardHTML(task, false)).join('')
+    : '<div style="color:var(--text-soft);font-size:14px;padding:8px">Nothing due in the next 7 days 🎉</div>';
+}
+
+function careCardHTML(task, isToday) {
+  const {plant,task:type,daysOverdue,daysTo} = task;
+  const taskLabel = type==='water'?t('water'):t('fertilize');
+  const taskEmoji = type==='water'?'💧':'🌿';
+  const urgencyClass = type==='fertilize'?'fertilize':(daysOverdue>1?'urgent':'');
+  const dueText = isToday
+    ? (daysOverdue===0?t('today'):`${daysOverdue} ${t('days_ago')}`)
+    : `${t('in')||'in'} ${daysTo} ${t('days')}`;
+  return `<div class="care-card ${urgencyClass}">
+    <div class="care-plant-img">${plant.emoji}</div>
+    <div class="care-info">
+      <div class="care-name">${plant.name}</div>
+      <div class="care-task">${taskEmoji} ${taskLabel}</div>
+      <div class="care-due">${dueText}</div>
+    </div>
+    ${isToday?`<button class="done-btn" onclick="markDone('${plant.id}','${type}',this)">${t('mark_done')}</button>`:''}
+  </div>`;
+}
+
+function markDone(plantId, task, btn) {
+  const plant = plants.find(p=>p.id===plantId);
+  if(!plant) return;
+  const now = new Date().toISOString();
+  if(task==='water') plant.lastWatered = now;
+  if(task==='fertilize') plant.lastFertilized = now;
+  careHistory.unshift({id:Date.now(),plantId,plantName:plant.name,plantEmoji:plant.emoji,task,date:now,note:''});
+  saveData();
+  btn.textContent = t('done'); btn.classList.add('completed'); btn.disabled=true;
+  showToast('✅', t('toast_done'));
+  setTimeout(renderDashboard, 500);
+}
+
+// ═══════════════════════════════════════════════
+// MY PLANTS
+// ═══════════════════════════════════════════════
+function renderMyPlants() {
+  const tabs = ['All',...CATEGORIES];
+  document.getElementById('plantFilterTabs').innerHTML = tabs.map(c=>
+    `<button class="filter-tab ${plantFilter===c?'active':''}" onclick="plantFilter='${c}';renderMyPlants()">${c}</button>`
+  ).join('');
+  const q = (document.getElementById('plantSearch')?.value||'').toLowerCase();
+  const filtered = plants.filter(p=>{
+    const matchQ = !q || p.name.toLowerCase().includes(q) || (p.location||'').toLowerCase().includes(q);
+    const matchCat = plantFilter==='All' || p.category===plantFilter;
+    return matchQ && matchCat;
+  });
+  if(filtered.length===0) {
+    document.getElementById('plantsGrid').innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">🌱</div><div class="es-title">${t('no_plants')}</div></div>`;
+    return;
+  }
+  document.getElementById('plantsGrid').innerHTML = filtered.map(p=>plantCardHTML(p)).join('');
+}
+
+function plantCardHTML(p) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const lastW = p.lastWatered ? new Date(p.lastWatered) : new Date(0);
+  const nextW = new Date(lastW.getTime()+p.waterDays*864e5); nextW.setHours(0,0,0,0);
+  const daysToW = Math.round((nextW-today)/864e5);
+  const health = daysToW<-3?'bad':daysToW<0?'warn':'good';
+  const healthLabel = health==='good'?'✅ Healthy':health==='warn'?'⚠️ Needs Water':'🚨 Overdue';
+  const nextCareText = daysToW<=0?t('today'):`${daysToW} ${t('days')}`;
+  return `<div class="plant-card" onclick="openPlantDetail('${p.id}')">
+    <div class="plant-thumb">${p.emoji}
+      <div class="plant-health-badge health-${health}">${healthLabel}</div>
+    </div>
+    <div class="plant-body">
+      <div class="plant-name">${p.name}</div>
+      <div class="plant-sci">${p.species||''}</div>
+      <div class="plant-location">📍 ${p.location||'—'}</div>
+      <div class="plant-next-care">💧 ${t('next_care')}: ${nextCareText}</div>
+    </div>
+  </div>`;
+}
+
+function openAddPlantModal(catalogPlant) {
+  buildEmojiPicker();
+  buildCategorySelect();
+  if(catalogPlant) {
+    document.getElementById('fName').value = catalogPlant.name;
+    document.getElementById('fCategory').value = catalogPlant.category;
+    document.getElementById('fWaterDays').value = catalogPlant.water;
+    document.getElementById('fFertilizeDays').value = catalogPlant.fertilize;
+    selectEmoji(catalogPlant.emoji);
+  } else {
+    document.getElementById('fName').value='';
+    document.getElementById('fLocation').value='';
+    document.getElementById('fNotes').value='';
+    document.getElementById('fWaterDays').value='7';
+    document.getElementById('fFertilizeDays').value='30';
+    selectEmoji('🌿');
+  }
+  openModal('addPlantModal');
+}
+
+function buildEmojiPicker() {
+  const emojis=['🌿','🌱','🌺','🌸','🌼','🌻','🌾','🍀','🍃','🍁','🌵','🪴','🌳','🌴','🌲','🎋','💐','🌹'];
+  document.getElementById('emojiPicker').innerHTML = emojis.map(e=>
+    `<div class="emoji-opt ${e===selectedEmoji?'selected':''}" onclick="selectEmoji('${e}')">${e}</div>`
+  ).join('');
+}
+function selectEmoji(e) {
+  selectedEmoji=e;
+  document.querySelectorAll('.emoji-opt').forEach(el=>el.classList.toggle('selected',el.textContent===e));
+}
+
+function buildCategorySelect() {
+  const sel = document.getElementById('fCategory');
+  sel.innerHTML = CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join('');
+}
+
+function savePlant() {
+  const name = document.getElementById('fName').value.trim();
+  if(!name) { showToast('⚠️','Please enter a plant name'); return; }
+  const plant = {
+    id: 'p'+Date.now(),
+    name, emoji: selectedEmoji,
+    category: document.getElementById('fCategory').value,
+    location: document.getElementById('fLocation').value.trim(),
+    waterDays: parseInt(document.getElementById('fWaterDays').value)||7,
+    fertilizeDays: parseInt(document.getElementById('fFertilizeDays').value)||30,
+    notes: document.getElementById('fNotes').value.trim(),
+    addedOn: new Date().toISOString(),
+    lastWatered: new Date().toISOString(),
+    lastFertilized: new Date().toISOString(),
+  };
+  plants.push(plant);
+  careHistory.unshift({id:Date.now(),plantId:plant.id,plantName:plant.name,plantEmoji:plant.emoji,task:'water',date:plant.addedOn,note:'Initial care setup'});
+  saveData();
+  closeModal('addPlantModal');
+  showToast('🌱', t('toast_saved'));
+  renderMyPlants();
+  renderDashboard();
+}
+
+function openPlantDetail(plantId) {
+  const p = plants.find(x=>x.id===plantId);
+  if(!p) return;
+  document.getElementById('detailTitle').textContent = p.emoji+' '+p.name;
+  const history = careHistory.filter(h=>h.plantId===plantId).slice(0,8);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const lastW = p.lastWatered?new Date(p.lastWatered):new Date(0);
+  const nextW = new Date(lastW.getTime()+p.waterDays*864e5);
+  const lastF = p.lastFertilized?new Date(p.lastFertilized):new Date(0);
+  const nextF = new Date(lastF.getTime()+p.fertilizeDays*864e5);
+  const historyHTML = history.map(h=>{
+    const d = new Date(h.date); const dAgo = Math.round((Date.now()-d)/864e5);
+    const label = dAgo===0?t('today'):dAgo===1?t('yesterday'):`${dAgo} ${t('days_ago')}`;
+    return `<div class="timeline-item"><div class="tl-dot-col"><div class="tl-dot ${h.task}"></div></div><div class="tl-body"><div class="tl-title">${h.task==='water'?'💧 '+t('water'):'🌿 '+t('fertilize')}</div><div class="tl-date">${label} — ${d.toLocaleDateString()}</div>${h.note?`<div class="tl-note">${h.note}</div>`:''}</div></div>`;
+  }).join('');
+  document.getElementById('plantDetailContent').innerHTML = `
+    <div class="plant-detail-grid">
+      <div class="care-stat-chip"><div class="csc-label">${t('last_care')}</div><div class="csc-val">${lastW>new Date(0)?lastW.toLocaleDateString():'—'}</div></div>
+      <div class="care-stat-chip"><div class="csc-label">${t('next_care')}</div><div class="csc-val">${nextW.toLocaleDateString()}</div></div>
+      <div class="care-stat-chip"><div class="csc-label">💧 Water cycle</div><div class="csc-val">Every ${p.waterDays}d</div></div>
+      <div class="care-stat-chip"><div class="csc-label">🌿 Fertilize</div><div class="csc-val">Every ${p.fertilizeDays}d</div></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:20px">
+      <button class="done-btn" style="flex:1;padding:12px;font-size:14px" onclick="markDoneFromDetail('${p.id}','water')">💧 ${t('water')} Now</button>
+      <button class="done-btn" style="flex:1;padding:12px;font-size:14px;background:var(--amber)" onclick="markDoneFromDetail('${p.id}','fertilize')">🌿 ${t('fertilize')} Now</button>
+      <button class="done-btn" style="flex:1;padding:12px;font-size:14px;background:var(--rust)" onclick="deletePlant('${p.id}')">🗑️</button>
+    </div>
+    ${p.notes?`<div class="tl-note" style="margin-bottom:16px">📝 ${p.notes}</div>`:''}
+    <div class="section-title">${t('care_history')}</div>
+    <div class="history-list">${historyHTML||'<div style="color:var(--text-soft);font-size:14px;padding:12px 0">No history yet.</div>'}</div>
+  `;
+  openModal('plantDetailModal');
+}
+
+function markDoneFromDetail(plantId, task) {
+  const plant = plants.find(p=>p.id===plantId);
+  if(!plant) return;
+  const now = new Date().toISOString();
+  if(task==='water') plant.lastWatered=now;
+  if(task==='fertilize') plant.lastFertilized=now;
+  careHistory.unshift({id:Date.now(),plantId,plantName:plant.name,plantEmoji:plant.emoji,task,date:now,note:''});
+  saveData();
+  showToast('✅',t('toast_done'));
+  openPlantDetail(plantId);
+  renderDashboard();
+}
+
+function deletePlant(plantId) {
+  if(!confirm('Delete this plant?')) return;
+  plants = plants.filter(p=>p.id!==plantId);
+  saveData();
+  closeModal('plantDetailModal');
+  renderMyPlants();
+  renderDashboard();
+  showToast('🗑️','Plant removed.');
+}
+
+// ═══════════════════════════════════════════════
+// CATALOG
+// ═══════════════════════════════════════════════
+function renderCatalog() {
+  const tabs = ['All',...CATEGORIES];
+  document.getElementById('catalogFilterTabs').innerHTML = tabs.map(c=>
+    `<button class="filter-tab ${catalogFilter===c?'active':''}" onclick="catalogFilter='${c}';renderCatalog()">${c}</button>`
+  ).join('');
+  const q = (document.getElementById('catalogSearch')?.value||'').toLowerCase();
+  const filtered = CATALOG.filter(p=>{
+    const matchQ = !q || p.name.toLowerCase().includes(q) || p.sci.toLowerCase().includes(q) || p.category.toLowerCase().includes(q);
+    const matchCat = catalogFilter==='All'||p.category===catalogFilter;
+    return matchQ && matchCat;
+  });
+  document.getElementById('catalogGrid').innerHTML = filtered.map(p=>`
+    <div class="catalog-card">
+      <div class="catalog-thumb">${p.emoji}</div>
+      <div class="catalog-body">
+        <div class="catalog-name">${p.name}</div>
+        <div class="catalog-sci">${p.sci}</div>
+        <div class="catalog-tags">${p.tags.map(t=>`<span class="catalog-tag">${t}</span>`).join('')}</div>
+        <div class="catalog-water">💧 ${p.water}d &nbsp; 🌿 ${p.fertilize}d &nbsp; ☀️ ${p.light}</div>
+        ${p.tip?`<div style="font-size:11px;color:var(--text-soft);margin-top:6px;font-style:italic">💡 ${p.tip}</div>`:''}
+        <button class="add-from-catalog-btn" onclick="openAddPlantModal(CATALOG.find(x=>x.id==='${p.id}'));event.stopPropagation()">${t('add_to_collection')}</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════
+// DISEASE AI
+// ═══════════════════════════════════════════════
+function renderDiseaseView() {
+  document.getElementById('symptomGrid').innerHTML = SYMPTOMS.map(s=>`
+    <div class="symptom-chip ${selectedSymptoms.includes(s.id)?'selected':''}" onclick="toggleSymptom('${s.id}',this)">
+      ${s.emoji} ${s.label}
+    </div>
+  `).join('');
+  // Plant type selector
+  const sel = document.getElementById('diseasePlantType');
+  sel.innerHTML = '<option value="">Any / Unknown</option>' + CATALOG.map(p=>`<option value="${p.name}">${p.emoji} ${p.name}</option>`).join('');
+}
+
+function toggleSymptom(id, el) {
+  if(selectedSymptoms.includes(id)) selectedSymptoms=selectedSymptoms.filter(s=>s!==id);
+  else selectedSymptoms.push(id);
+  el.classList.toggle('selected');
+}
+
+async function diagnose() {
+  if(selectedSymptoms.length===0) { showToast('⚠️','Please select at least one symptom'); return; }
+  const symptoms = selectedSymptoms.map(id=>SYMPTOMS.find(s=>s.id===id)?.label).join(', ');
+  const plantType = document.getElementById('diseasePlantType').value;
+  const area = document.getElementById('diagnosisArea');
+  area.innerHTML = `<div class="ai-loading"><div class="spinner"></div><span>${t('diagnosing')}</span></div>`;
+
+  const prompt = `You are a plant disease expert. A plant owner reports these symptoms: ${symptoms}.${plantType?' Plant type: '+plantType+'.':''} Provide a JSON response ONLY (no markdown, no preamble) with this exact structure: {"disease":"Disease Name","probability":"High/Medium/Low","description":"2-3 sentence description","causes":["cause1","cause2"],"treatment":["step1","step2","step3","step4"],"prevention":"One sentence prevention tip"}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await res.json();
+    let text = data.content?.find(c=>c.type==='text')?.text||'{}';
+    text = text.replace(/```json|```/g,'').trim();
+    const d = JSON.parse(text);
+    area.innerHTML = `
+      <div class="diagnosis-result">
+        <div class="diagnosis-card">
+          <div class="diagnosis-disease">🔬 ${d.disease}</div>
+          <div class="diagnosis-prob">Confidence: <strong>${d.probability}</strong></div>
+          <div class="diagnosis-desc">${d.description}</div>
+          ${d.causes?`<div style="margin-top:12px;font-size:13px;font-weight:600;color:var(--text-dark)">Likely Causes</div><div style="font-size:13px;color:var(--text-mid);margin-top:4px">${d.causes.map(c=>`• ${c}`).join('<br>')}</div>`:''}
+        </div>
+        <div class="diagnosis-treatment">
+          <div class="treatment-title">🌿 ${t('treatment_steps')}</div>
+          ${(d.treatment||[]).map((step,i)=>`<div class="treatment-step"><div class="step-num">${i+1}</div><div>${step}</div></div>`).join('')}
+        </div>
+        ${d.prevention?`<div style="margin-top:16px;padding:14px;background:var(--green-pale);border-radius:12px;font-size:13px;color:var(--green-deep)">🛡️ <strong>Prevention:</strong> ${d.prevention}</div>`:''}
+      </div>`;
+  } catch(e) {
+    area.innerHTML = `<div class="diagnosis-card"><div class="diagnosis-disease">⚠️ Could not get diagnosis</div><div class="diagnosis-desc">Please check your connection and try again. Error: ${e.message}</div></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════
+function renderHistory() {
+  const tabs = ['All','water','fertilize'];
+  document.getElementById('historyFilterTabs').innerHTML = tabs.map(c=>
+    `<button class="filter-tab ${historyFilter===c?'active':''}" onclick="historyFilter='${c}';renderHistory()">${c==='water'?'💧 Water':c==='fertilize'?'🌿 Fertilize':'All'}</button>`
+  ).join('');
+  const filtered = historyFilter==='All'?careHistory:careHistory.filter(h=>h.task===historyFilter);
+  if(filtered.length===0){
+    document.getElementById('historyList').innerHTML=`<div class="empty-state"><div class="es-icon">📋</div><div class="es-title">No history yet</div><div>Start caring for your plants to see history.</div></div>`;
+    return;
+  }
+  document.getElementById('historyList').innerHTML = filtered.map((h,i)=>{
+    const d=new Date(h.date); const dAgo=Math.round((Date.now()-d)/864e5);
+    const label=dAgo===0?t('today'):dAgo===1?t('yesterday'):`${dAgo} ${t('days_ago')}`;
+    const taskLabel=h.task==='water'?`💧 ${t('water')}`:h.task==='fertilize'?`🌿 ${t('fertilize')}`:`💦 ${t('mist')}`;
+    return `<div class="timeline-item">
+      <div class="tl-dot-col"><div class="tl-dot ${h.task}"></div>${i<filtered.length-1?'<div class="tl-line"></div>':''}</div>
+      <div class="tl-body">
+        <div class="tl-title">${taskLabel}</div>
+        <div class="tl-plant">${h.plantEmoji} ${h.plantName}</div>
+        <div class="tl-date">${label} — ${d.toLocaleString()}</div>
+        ${h.note?`<div class="tl-note">${h.note}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+// ═══════════════════════════════════════════════
+// LANGUAGE
+// ═══════════════════════════════════════════════
+function openLangModal() {
+  document.getElementById('langGrid').innerHTML = Object.values(LANGS).map(l=>`
+    <div class="lang-opt ${currentLang===l.code?'active':''}" onclick="setLang('${l.code}')">
+      <div class="lang-name">${l.name}</div>
+      <div class="lang-native">${l.native}</div>
+    </div>
+  `).join('');
+  openModal('langModal');
+}
+function setLang(code) {
+  currentLang=code;
+  localStorage.setItem('lm_lang',code);
+  applyTranslations();
+  closeModal('langModal');
+  renderDashboard();
+  if(document.getElementById('view-catalog').classList.contains('active')) renderCatalog();
+  if(document.getElementById('view-myplants').classList.contains('active')) renderMyPlants();
+  if(document.getElementById('view-disease').classList.contains('active')) renderDiseaseView();
+  if(document.getElementById('view-history').classList.contains('active')) renderHistory();
+}
+
+// ═══════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════
+function requestNotifPermission() {
+  if(!('Notification' in window)) { showToast('❌','Browser does not support notifications'); return; }
+  Notification.requestPermission().then(p=>{
+    if(p==='granted') {
+      document.getElementById('notifDot').style.display='block';
+      showToast('🔔', t('toast_notif'));
+      scheduleNotifications();
+    } else showToast('⚠️', t('toast_notif_denied'));
+  });
+}
+
+function scheduleNotifications() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  plants.forEach(p=>{
+    const lastW = p.lastWatered?new Date(p.lastWatered):new Date(0);
+    const nextW = new Date(lastW.getTime()+p.waterDays*864e5); nextW.setHours(8,0,0,0);
+    const msToW = nextW-Date.now();
+    if(msToW>0 && msToW<864e5) {
+      setTimeout(()=>{ new Notification('💧 Water Reminder', {body:`Time to water ${p.emoji} ${p.name}!`,icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🌿</text></svg>'}); }, msToW);
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════
+function showToast(icon, message) {
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div'); t.className='toast';
+  t.innerHTML=`<span class="toast-icon">${icon}</span><span>${message}</span><button class="toast-close" onclick="this.parentElement.remove()">✕</button>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},3500);
+}
+
+// ═══════════════════════════════════════════════
+// SEED DATA (demo plants if empty)
+// ═══════════════════════════════════════════════
+function seedDemo() {
+  if(plants.length>0) return;
+  const demos=[
+    {id:'p_demo1',name:'Monstera Maya',emoji:'🌿',category:'Tropical',location:'Living Room',waterDays:7,fertilizeDays:30,notes:'Loves the east window',addedOn:new Date(Date.now()-30*864e5).toISOString(),lastWatered:new Date(Date.now()-8*864e5).toISOString(),lastFertilized:new Date(Date.now()-35*864e5).toISOString()},
+    {id:'p_demo2',name:'Sassy Snake',emoji:'🪴',category:'Succulents',location:'Bedroom',waterDays:14,fertilizeDays:60,notes:'Very forgiving',addedOn:new Date(Date.now()-60*864e5).toISOString(),lastWatered:new Date(Date.now()-3*864e5).toISOString(),lastFertilized:new Date(Date.now()-20*864e5).toISOString()},
+    {id:'p_demo3',name:'Lily the Peacemaker',emoji:'🌸',category:'Flowering',location:'Office',waterDays:7,fertilizeDays:30,notes:'Droops when thirsty',addedOn:new Date(Date.now()-20*864e5).toISOString(),lastWatered:new Date(Date.now()-9*864e5).toISOString(),lastFertilized:new Date(Date.now()-10*864e5).toISOString()},
+  ];
+  plants = demos;
+  careHistory = [
+    {id:1,plantId:'p_demo1',plantName:'Monstera Maya',plantEmoji:'🌿',task:'water',date:new Date(Date.now()-8*864e5).toISOString(),note:''},
+    {id:2,plantId:'p_demo2',plantName:'Sassy Snake',plantEmoji:'🪴',task:'water',date:new Date(Date.now()-3*864e5).toISOString(),note:''},
+    {id:3,plantId:'p_demo3',plantName:'Lily the Peacemaker',plantEmoji:'🌸',task:'fertilize',date:new Date(Date.now()-10*864e5).toISOString(),note:'Used diluted liquid fertilizer'},
+    {id:4,plantId:'p_demo1',plantName:'Monstera Maya',plantEmoji:'🌿',task:'fertilize',date:new Date(Date.now()-35*864e5).toISOString(),note:''},
+  ];
+  saveData();
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+(function init(){
+  const savedLang = localStorage.getItem('lm_lang')||'en';
+  currentLang = savedLang;
+  seedDemo();
+  applyTranslations();
+  renderDashboard();
+  renderCatalog();
+  renderDiseaseView();
+  renderHistory();
+  if(Notification.permission==='granted') {
+    document.getElementById('notifDot').style.display='block';
+    scheduleNotifications();
+  }
+})();
+</script>
+</body>
+</html>
